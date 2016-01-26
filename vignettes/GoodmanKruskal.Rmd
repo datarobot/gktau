@@ -1,0 +1,184 @@
+---
+title: "The GoodmanKruskal package: Measuring association between categorical variables"
+author: "Ron Pearson"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    fig_caption: yes  
+vignette: >
+  %\VignetteIndexEntry{The GoodmanKruskal package: Measuring association between categorical variables}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+
+The standard association measure between numerical variables is the product-moment correlation coefficient introduced by Karl Pearson at the end of the nineteenth century.  This measure characterizes the degree of linear association between numerical variables and is both normalized to lie between -1 and +1 and symmetric: the correlation between variables x and y is the same as that between y and x.  Categorical variables arise commonly in many applications and the best-known association measure between two categorical variables is probably the chi-square measure, also introduced by Karl Pearson.  Like the product-moment correlation coefficient, this association measure is symmetric, but it is not normalized, providing one motivation for *Cramer's V*.  This measure is the square root of a normalized chi-square value, which varies between 0 and 1 and is conveniently available in the **vcd** package.  An alternative to Cramer's V is *Goodman and Kruskal's tau measure*, which is *asymmetric* because it is based on the fraction of variability in the categorical variable y that can be explained by the categorical variable x.  In particular, the fraction of variability in x that is explainable by variations in y may be very different from the variability in y that is explainable by variations in x, as examples presented here demonstrate.  While this asymmetry is initially disconcerting, it turns out to be extremely useful, which is one of the primary points of this vignette.  The utility in exploratory data analysis of Goodman and Kruskal's tau measure - which does not appear to be available in any other *R* package - is also one of the primary motivations for developing the **GoodmanKruskal** package.
+
+## 1. Introduction
+
+### 1.1 Problem formulation, chi-square, and Cramer's V
+
+The basic problem of interest here may be formulated as follows.  We are given two categorical variables, $x$ and $y$, having $K$ and $L$ distinct values, respectively, and we wish to quantify the extent to which these variables are associated or ``vary together.''  It is assumed that we have $N$ records available, each listing the levels $x$ and $y$ assume; for convenience, introduce the notation $x \rightarrow i$ to indicate that $x$ assumes it's $i^{th}$ possible value.  The basis for all categorical association measures is the contingency table $N_{ij}$ which counts the number of times $x \rightarrow i$ and $y \rightarrow j$:
+$$
+\begin{equation}
+N_{ij} =  |\{ (i, j) | x \rightarrow i, y \rightarrow j\}|,
+\end{equation}
+$$
+where $| {\cal S} |$ indicates the number of elements in the set $\cal S$.  The raw counts in this contingency table may be turned into simple probability estimates by dividing by the number of records $N$:
+$$
+\begin{equation}
+\pi_{ij} = \frac{N_{ij}}{N}.
+\end{equation}
+$$
+The chi-square association measure is given by:
+$$
+\begin{equation}
+X^2 = N \sum_{i=1}^{K} \sum_{j=1}^{L} \; \frac{(\pi_{ij} - \pi_{i+} \pi_{+j})^2}{\pi_{i+} \pi_{+j}},
+\end{equation}
+$$
+where the marginals $\pi_{i+}$ and $\pi_{+j}$ are defined by:
+$$
+\begin{eqnarray}
+\pi_{i+} & = & \sum_{j=1}^{L} \; \pi_{ij}, \\
+\pi_{+j} & = & \sum_{i=1}^{K} \; \pi_{ij}.
+\end{eqnarray}
+$$
+The idea behind this association measure is based on the observation that, if $x$ and $y$ are regarded as discrete-valued random variables, then $\pi_{ij}$ is an empirical estimate of their joint distribution, while $\pi_{i+}$ and $\pi_{+j}$ are estimates of the corresponding marginal distributions.  If $x$ and $y$ are statistically independent, the joint distribution is simply the product of the marginal distributions, and the $X^2$ measure characterizes the extent to which the estimated probabilities depart from this independence assumption.  Unfortunately, the $X^2$ measure is not normalized, varying between a minimum value of $0$ under the independence assumption to a maximum vaue of $N \min \{ K-1, L-1 \}$ (see Agresti, page 112).  This observation motivates Cramer's V measure, defined as:
+$$
+\begin{equation}
+V = \sqrt{ \frac{X^2}{N \mbox{min} \{ (K-1, L-1) \} } }. 
+\end{equation}
+$$
+This normalized measure varies from a minimum value of $0$ when $x$ and $y$ are statistically independent to a maximum value of $1$ when one variable is perfectly predictable from the other.
+
+### 1.2 Goodman and Kruskal's tau measure
+
+Goodman and Kruskal's $\tau$ measure of association between two variables, $x$ and $y$, is one member of a more general class of association measures defined by:
+$$
+\begin{equation}
+\alpha(x, y) = \frac{V(y) - E [V(y|x)]}{V(y)},
+\end{equation}
+$$
+where $V(y)$ denotes a measure of the unconditional variability in $y$ and $V(y|x)$ is the same measure of variability, but conditional on $x$, and its expectation is taken with respect to $x$.  Different members of this family are obtained by selecting different definitions of these variability measures, as discussed in Alan Agresti's book, *Categorical Data Analysis* (Wiley, 2002, second edition, Section 2.4.2).  The specific choices on which Goodman and Kruskal's $\tau$ measure is based are:
+$$
+\begin{eqnarray}
+V(y) & = & 1 - \sum_{j=1}^{L} \; \pi_{+j}^2, \\
+E [V(y|x)] & = & 1 - \sum_{i=1}^{K} \sum_{j=1}^{L} \frac{\pi_{ij}^2}{\pi_{i+}}.
+\end{eqnarray}
+$$
+These equations form the basis for the function **GKtau** included in the GoodmanKruskal package.  
+
+## 2. The GoodmanKruskal R package
+
+## 3. Three examples
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+require(GoodmanKruskal)
+require(MASS)
+require(car)
+```
+
+The following examples illustrate the use of Goodman and Kruskal's $\tau$ measure of association between categorical variables in uncovering possibly surprising features in a dataset.  The two examples presented in Section 3.1 are both based on the **Cars93** dataframe in the **MASS** package, and they illustrate two key points, each based on a different subset of the `r ncol(Cars93)` columns from the dataframe.  The first example provides a useful illustration of the general behavior of Goodman and Kruskal's $\tau$ measure, including its asymmetry, while the second example illustrates one of the two important special cases discussed in detail in Section 4.1.  The third example is presented in Section 3.2 and it illustrates the utility of Goodman and Kruskal's $\tau$ measure in exploratory data analysis, uncovering a relationship that is not obvious, although easily understood once it is identified.
+
+### 3.1 The Cars93 dataframe
+
+The **Cars93** dataframe from the **MASS** package characterizes 93 different cars in terms of `r ncol(Cars93)` attributes.  The plot below gives a graphical summary of the results obtained using the **GKtauDataframe** procedure described in Section 2, applied to a subset of five of these attributes.  This plot is in the form of a $5 \times 5$ array, with the variable names across the top and down the left side.  The diagonal entries in this display give the numbers of unique levels for each variable, while the off-diagonal elements give both numeric and graphical representations of the Goodman-Kruskal $\tau$ values.  Specifically, the numerical values appearing in each row represent the association measure $\tau(x, y)$ from the variable $x$ indicated in the row name to the variable $y$ indicated in the column name.  Looking at the upper left $2 \times 2$ sub-array from this plot provides an extreme illustration of the asymmetry of the $\tau$ measure.  Specifically, the association from **Manufacturer** to **Origin** is $\tau(x, y) = 1$, as indicated by the degenerate ellipse (i.e., straight line) in the $(1, 2)$-element of this plot array.  In contrast, the opposite association - from **Origin** to **Manufacturer** has a $\tau$ value of only $0.05$, small enough to be regarded as zero.  This result means that **Origin** is perfectly predictable from **Manufacturer**, but **Origin** gives essentially no information about **Manufacturer**; in practical terms, this suggests we can uniquely associate an origin (i.e., "USA" or "non-USA") with every manufacturer, but that each of these origin designations includes multiple manufacturers.  Looking carefully at the $26 \times 2$ contingency table constructed from these variables confirms this result - there are 48 manufacturers in the "USA"" group and 45 different manufacturers in the "non-USA"" group - but it is *much* easier to see this from the plot shown below.
+
+```{r, echo = TRUE, fig.width = 7.5, fig.height = 6}
+varSet1 <- c("Manufacturer", "Origin", "Cylinders", "EngineSize", "Passengers")
+CarFrame1 <- subset(Cars93, select = varSet1)
+GKmatrix1 <- GKtauDataframe(CarFrame1)
+plot(GKmatrix1)
+```
+
+More generally, it appears from the plot of $\tau$ values that the variable **Origin** explains essentially no variability in any of the other variables, while *all* of the reverse associations are larger, ranging from a small association seen with **Cylinders** ($0.14$) to the complete predictability from **Origin** just noted.  The variable **Cylinders** exhibits a slight ability to explain variations in the other variables (ranging from $0.06$ to $0.14$), but two of the reverse associations are much larger: the $\tau$ value from **Manufacturer** to **Cylinders** is $0.36$, while that from **EngineSize** is $0.85$, indicating quite a strong association.  Again, after carefully examining the underlying data, it appears that larger engines generally have more cylinders, but that for each cylinder count, there exists a range of engine sizes, with significant overlap between some of these ranges.
+  
+The next plot is basically the same as that just considered, with the addition of a single variable: **Make**, which completely specifies the car described by each record of the **Cars93** dataframe.  Because of the way it is constructed, the only new features are the bottom row and the right-most column.  Here, the asymmetry of the Goodman-Kruskal $\tau$ measure is even more extreme, since the variable **Make** is *perfectly* predictive of all other variables in the dataset.  As shown in Section 4.1, this behavior is a consequence of the fact that this variable exhibits a unique value for every record in the dataset, making it effectively a record index.  Conversely, note that these other variables are at best moderate predictors of the variations seen in **Make** (specifically, **Manufacturer** and **EngineSize** are somewhat predictive).  Also, it is important to emphasize that perfect predictors need not be record indices, as in the case of **Manufacturer** and **Origin** discussed above.
+  
+```{r, echo = TRUE, fig.width = 7.5, fig.height = 6}
+varSet2 <- c("Manufacturer", "Origin", "Cylinders", "EngineSize", "Passengers", "Make")
+CarFrame2 <- subset(Cars93, select = varSet2)
+GKmatrix2 <- GKtauDataframe(CarFrame2)
+plot(GKmatrix2)
+```
+
+### 3.2 The Greene dataframe
+
+The third and final example presented here is based on the **Greene** dataframe from the **car** package, which has `r nrow(Greene)` rows and `r ncol(Greene)` columns, with each row characterizing a request to the Canadian Federal Court of Appeal filed in 1990 to overturn a rejection of a refugee status request by the Immigration and Refugee Board.  A more detailed description of these variables is given in the **help** file for this dataframe, but a preliminary idea of its contents may be obtained with the **str** function:
+
+```{r, echo = TRUE}
+str(Greene)
+```
+  
+Applying the **GKtauDataframe** function to this dataframe yields the association plot shown below, which reveals several interesting details.  The most obvious feature of this plot is the fact that the variable **success** is perfectly predictable from **nation** (i.e., $\tau(x, y) = 1$ for this association).  Similarly, the reverse association, while not perfect is also quite strong ($\tau(y, x) = 0.85$); taken together, these results suggest a very strong connection between these variables.  Referring to the **help** file for this dataframe, we see that **success** is defined as the "logit of success rate, for all cases from the applicant's nation," which is completely determined by **nation**, consistent with the results seen here.  Conversely, an examination of the numbers reveals that, while most **success** values are unique to a single nation, a few are duplicates (e.g., Ghana and Nigeria both exhibit the **success** value $-1.20831$), explaining the strong but not perfect reverse association between these variables.   Note, however, that this case of perfect association is not due to the "record index" issue seen in the first **Cars93** example and discussed further in Section 4, since the number of levels **nation** is only $17$, far fewer than the number of data records ($N = 384$).  
+
+```{r, echo = TRUE, fig.width = 7.5, fig.height = 6}
+GKmatrix3 <- GKtauDataframe(Greene)
+plot(GKmatrix3)
+```
+
+The other reasonably strong association seen in this plot is that between **location** and **language**, where the forward association is $0.8$ and the reverse association is $0.5$; these numbers suggest that **location** (which has levels "Montreal", "Toronto", and "other") is highly predictive of **language** (which has levels "English" and "French"), which seems reasonable given the language landscape of Canada.  We can obtain a more complete picture of this relationship by looking at the contingency table for these two variables:
+
+```{r, echo = TRUE}
+table(Greene$language, Greene$location)
+```
+
+This table also suggests the reason for the much weaker reverse association between these variables: while almost all French petitions are heard in Montreal, there is a significant split in the English petitions between Toronto and the "other" locations.  The key point here is that, while the contingency table provides a more detailed view of what is happening here than the forward and reverse Goodman and Kruskal's $tau$ measures do, the plot of these measures helps us quickly identify which of the $21$ pairs of the seven variables included in this dataframe are worthy of further scrutiny.  Finally, it is worth noting that, if we look at the **decision** variable, *none* of the other variables in the dataset are strongly associated, in either direction.  This suggests that none of the refugee characteristics included in this dataset are strongly predictive of the outcome of their appeal.
+
+## 4. An important special case: $K = N$
+
+The special case $K = N$ arises in two distinct but extremely important circumstances.  The first is the case of effective record labels like **Make** in the **Cars93** example discussed in Section 3.1, while the second is the case of continuously-distributed numerical variables discussed in Section 5.  The point of the following discussion is to show that in this case, $\tau(x, y) = 1$ for all variables $y$.
+
+To see this point, proceed as follows.  First, note that if $K = N$, the contingency table matrix $N_{ij}$ is given by:
+$$
+\begin{equation}
+N_{ij} = \left\{ \begin{array}{ll}
+  1 & \mbox{if $y \rightarrow j$}, \\
+  0 & \mbox{otherwise,}
+    \end{array}
+  \right.
+\end{equation}
+$$
+which implies:
+$$
+\begin{equation}
+\pi_{ij} = \left\{ \begin{array}{ll}
+  1/N & \mbox{if $y \rightarrow j$}, \\
+  0 & \mbox{otherwise.}
+    \end{array}
+  \right.
+\end{equation}
+$$
+From this result, it follows that:
+$$
+\begin{equation}
+\pi_{i+} = \sum_{j=1}^{L} \; \pi_{ij} = 1/N,
+\end{equation}
+$$
+since only nonzero term appears in this sum.  Thus, it follows that:
+$$
+\begin{eqnarray}
+E [V(y|x)] & = & 1 - \sum_{i=1}^{K} \sum_{j=1}^{L} \frac{\pi_{ij}^2}{\pi_{i+}} \\
+ & = & 1 - \sum_{i=1}^{N} \sum_{j = 1}^{L} \; N \pi_{ij}^2 \\
+ & = & 1 - \sum_{i=1}^{N} \; N (1/N)^2 \\
+ & = & 1 - \sum_{i=1}^{N} \; (1/N) \\
+ & = & 0.
+\end{eqnarray}
+$$
+Substituting this result into the defining equation for Goodman and Kruskal's $\tau$, we finally arrive at the following result:
+$$
+\begin{equation}
+K = N \; \Rightarrow \; \tau(x, y) = 1,
+\end{equation}
+$$
+for any variable $y$.  Before leaving this discussion, it is important to emphasize that the condition $K = N$ is *sufficient* for $\tau(x, y) = 1$, but *not necessary*.  This point was illustrated by the fact that the variable **Manufacturer** completely explains the variability in **Origin** in the **Cars93** example discussed in Section 3.1, despite the fact that $K = 32$ for the **Manufacturer** variable but $N = 93$.
+
+
+## 5. Grouping numeric variables
+
+It is important to note that the basic machinery of Goodman and Kruskal's $\tau$ can be applied to numerical variables, although the results obtained may or may not be useful, depending on circumstances.  Specifically, for continuously distributed numerical variables (e.g., Gaussian data), repeated values or "ties" have zero probability,
+
+
+## 6. Regrouping categorical variables
+
+## 7. Summary
+
