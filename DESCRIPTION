@@ -10,6 +10,7 @@ Description: This package supports association analysis between categorical
 Depends: 
     R (>= 3.2.3)
 Imports: 
+    classInt,
     corrplot
 License: GPL (>= 2)
 LazyData: true

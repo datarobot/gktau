@@ -13,10 +13,11 @@ Imports:
     corrplot
 License: GPL (>= 2)
 LazyData: true
-RoxygenNote: 5.0.1
 Suggests: 
-    testthat,
     knitr,
-    rmarkdown,
-    MASS
+    MASS,
+    testthat,
+    car,
+    rmarkdown
 VignetteBuilder: knitr
+RoxygenNote: 5.0.1

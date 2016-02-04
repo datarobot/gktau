@@ -3,6 +3,4 @@
 S3method(plot,GKtauMatrix)
 export(GKtau)
 export(GKtauDataframe)
-export(GroupNumericDataframe)
-export(MakeDataframe)
-export(RegroupCategoricalDataframe)
+export(GroupNumeric)
