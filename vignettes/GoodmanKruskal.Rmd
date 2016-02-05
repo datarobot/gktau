@@ -55,7 +55,7 @@ This normalized measure varies from a minimum value of $0$ when $x$ and $y$ are 
 Goodman and Kruskal's $\tau$ measure of association between two variables, $x$ and $y$, is one member of a more general class of association measures defined by:
 $$
 \begin{equation}
-\alpha(x, y) = \frac{V(y) - E [V(y|x)]}{V(y)},
+\alpha(x, y) = \frac{V(y) - E [V(y|x)]}{V(y)}
 \end{equation}
 $$
 where $V(y)$ denotes a measure of the unconditional variability in $y$ and $V(y|x)$ is the same measure of variability, but conditional on $x$, and its expectation is taken with respect to $x$.  Different members of this family are obtained by selecting different definitions of these variability measures, as discussed in Alan Agresti's book, *Categorical Data Analysis* (Wiley, 2002, second edition, Section 2.4.2).  The specific choices on which Goodman and Kruskal's $\tau$ measure is based are:
@@ -65,9 +65,24 @@ V(y) & = & 1 - \sum_{j=1}^{L} \; \pi_{+j}^2, \\
 E [V(y|x)] & = & 1 - \sum_{i=1}^{K} \sum_{j=1}^{L} \frac{\pi_{ij}^2}{\pi_{i+}}.
 \end{eqnarray}
 $$
-These equations form the basis for the function **GKtau** included in the GoodmanKruskal package.  
+These equations form the basis for the function **GKtau** included in the GoodmanKruskal package.  Before concluding this discussion, however, it is worth noting that substituting these expressions into the general expression for $\alpha(x, y)$ given above and simplifying (via some messy algebra), we obtain the following explicit expression for Goodman and Kruskal's $\tau$ measure:
+$$
+\begin{equation}
+\tau(x, y) = \frac{ \sum_{i=1}^K \sum_{j=1}^L \; \left( \frac{ \pi_{ij}^2 - \pi_{i+}^2 \pi_{+j}^2 }{ \pi_{+j} } \right) }{ 1 - \sum_{j=1}^L \pi_{+j}^2 }.
+\end{equation}
+$$
+It follows from the fact that $i$ and $j$ are not interchangeable on the right-hand side of this equation that $\tau(y, x) \neq \tau(x, y)$, in general.
 
 ## 2. The GoodmanKruskal R package
+
+The **GoodmanKruskal** package has the following four functions to compute Goodman and Kruskal's $\tau$ measure and support some simple extensions.  These functions are:
+
+1.  __GKtau__ is the basic function to compute both the forward association $\tau(x, y)$ and the backward association $\tau(y, x)$ between two categorical vectors $x$ and $y$;
+1.  __GKtauDataframe__ computes the Goodman Kruskal association measures between all pairwise combinations of variables in a dataframe;
+1.  __GroupNumeric__ groups a numeric vector, returning a factor that can be used in association analysis, for reasons discussed in Section 4 and demonstrated in Section 5;
+1.  __plot.GKtauMatrix__ is a plot method for the S3 objects of class __GKtauMatrix__ returned by the __GKtauDataframe__ function.
+
+
 
 ## 3. Three examples
 
