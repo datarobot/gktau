@@ -5,7 +5,7 @@
 \title{Plot method for DataRobot S3 objects of class GKtauMatrix}
 \usage{
 \method{plot}{GKtauMatrix}(x, y, colorPlot = TRUE, corrColors = NULL,
-  backgroundColor = "gray", diagColor = "black", ...)
+  backgroundColor = "gray", diagColor = "black", diagSize = 1, ...)
 }
 \arguments{
 \item{x}{S3 object of class GKtauMatrix to be plotted.}
@@ -28,6 +28,9 @@ color used for the correlation ellipses in the plot.}
 \item{diagColor}{Character variable naming the color of the
 text used to display the number of levels per variable along
 the diagonal of the correlation matrix plot.}
+
+\item{diagSize}{Numeric scale factor to adjust the text size for
+the number of levels displayed on the diagonal of the plot array.}
 
 \item{\dots}{Not used; included for conformance with plot() generic
 function parameter requirements.}

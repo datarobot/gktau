@@ -190,8 +190,53 @@ for any variable $y$.  Before leaving this discussion, it is important to emphas
 
 ## 5. Grouping numeric variables
 
-It is important to note that the basic machinery of Goodman and Kruskal's $\tau$ can be applied to numerical variables, although the results obtained may or may not be useful, depending on circumstances.  Specifically, for continuously distributed numerical variables (e.g., Gaussian data), repeated values or "ties" have zero probability,
+It is important to note that the basic machinery of Goodman and Kruskal's $\tau$ can be applied to numerical variables, although the results obtained may or may not be useful, depending on circumstances.  Specifically, for continuously distributed numerical variables (e.g., Gaussian data), repeated values or "ties" have zero probability, which means that if $x$ is such a variable, then it follows from the results presented in Section 4 that $\tau(x, y) = 1$ for *any* variable $y$, regardless of its degree of association with $x$.  *Thus, for continuously distributed numerical variables, Goodman and Kruskal's tau measure should not be used to measure association; either the standard product-moment correlation coefficient or the Spearman rank correlation coefficient should be used instead.*  Also, continuity arguments suggest that numerical variables with "a few ties," for which $K$ is strictly less than $N$ but not a lot less than $N$, tend to give inflated association values under the Goodman and Kruskal tau measure.
 
+Conversely, integer variables often have many repeated values, implying that the number of levels $K$ is much smaller than the number $N$ of observations, and in these cases Goodman and Kruskal's tau measure may yield useful association results.  Also, it frequently happens that numerical variables are used to encode what are effectively categorical variables, either ordered or unordered.  The **mtcars** dataframe is a case in point: this dataframe has $N = 32$ records and $11$ variable, all numeric, but with between $2$ and $30$ distinct values.  As a specific example, the **cyl** variable is nummeric but has only three distinct levels (corresponding to 4-, 6-, and 8-cylinder cars): the forward associations from this variable to the other 10 in the dataframe vary from $0.06$ for the $30$-level variable **qsec** to $0.67$ for the $2$-level variable **vs**.  On the other hand, the forward associations from the $30$-level variable **qsec** range from $0.87$ for the binary variable **am** to $1.00$ for the binary variable **vs**.  Similarly, the forward associations from the $27$-level numerical variable **disp** range from $0.84$ for **qsec** to $1.00$ for the few-level variables **cyl**, **vs**, **am**, and **gear**.
+
+```{r, echo = TRUE, fig.width = 7.5, fig.height = 6, fig.cap = "Goodman-Kruskal tau matrix for the mtcars dataframe."}
+GKmat <- GKtauDataframe(mtcars)
+plot(GKmat, diagSize = 0.8)
+```
+
+To provide more useful association measures between continuous numerical variables with no ties or few ties and categorical variables with few- to moderate-levels, the strategy proposed here is to group these numerical variables, to obtain a related categorical variable with fewer levels.  This grouping strategy does entail a loss of information relative to the original numerical variable, but to the extent that the groups are representative, applying Goodman and Kruskal's tau measure to this categorical variable should give a more reasonable measure of the degree of association between the approximate value of the numerical variable and the other categorical - or few-level numerical - variables under consideration.  It is also worth noting that, despite the loss of information, this grouping strategy is popular in business applications (e.g., demographic analysis is often done by age group instead of by age itself).
+
+### TODO - to complete this discussion, include:
+
+* Discussion of the GroupNumeric function and its options
+* Idea of taking square root of N as number of groups (unless N is very large, this gives a moderate number of groups, each with a moderate number of data points)
+
+
+Returning to the **mtcars** example, the following *R* code defines grouped versions of the six variables with $K > 20$ and creates the modified dataframe **groupedMtcars**, replacing each variable with a factor with $K = 5$ groups, constructed with the default option **style = 'quantile'**:
+
+```{r, echo = TRUE}
+groupedMpg <- GroupNumeric(mtcars$mpg, n = 5)
+groupedDisp <- GroupNumeric(mtcars$disp, n = 5)
+groupedHp <- GroupNumeric(mtcars$hp, n = 5)
+groupedDrat <- GroupNumeric(mtcars$drat, n = 5)
+groupedWt <- GroupNumeric(mtcars$wt, n = 5)
+groupedQsec <- GroupNumeric(mtcars$qsec, n = 5)
+groupedMtcars <- mtcars
+groupedMtcars$mpg <- NULL
+groupedMtcars$groupedMpg <- groupedMpg
+groupedMtcars$disp <- NULL
+groupedMtcars$groupedDisp <- groupedDisp
+groupedMtcars$hp <- NULL
+groupedMtcars$groupedHp <- groupedHp
+groupedMtcars$drat <- NULL
+groupedMtcars$groupedDrat <- groupedDrat
+groupedMtcars$wt <- NULL
+groupedMtcars$groupedWt <- groupedWt
+groupedMtcars$qsec <- NULL
+groupedMtcars$groupedQsec <- groupedQsec
+```
+
+Applying the **GKtauDataframe** function to this modified **mtcars** dataframe yields the plot shown below:
+
+```{r, echo = TRUE, fig.width = 7.5, fig.height = 6, fig.cap = "Goodman-Kruskal tau matrix for the mtcars dataframe."}
+GKmat2 <- GKtauDataframe(groupedMtcars)
+plot(GKmat2, diagSize = 0.8)
+```
 
 
 ## 6. Summary

@@ -41,6 +41,8 @@
 #' @param diagColor Character variable naming the color of the
 #' text used to display the number of levels per variable along
 #' the diagonal of the correlation matrix plot.
+#' @param diagSize Numeric scale factor to adjust the text size for
+#' the number of levels displayed on the diagonal of the plot array.
 #' @param \dots Not used; included for conformance with plot() generic
 #' function parameter requirements.
 #' @return None.  This function is called for its side-effect of
@@ -51,7 +53,8 @@
 plot.GKtauMatrix <- function(x, y, colorPlot = TRUE,
                              corrColors = NULL,
                              backgroundColor = "gray",
-                             diagColor = "black", ...){
+                             diagColor = "black",
+                             diagSize = 1, ...){
   #
   GKclip <- pmin(x, 1)
   n <- ncol(x)
@@ -71,7 +74,7 @@ plot.GKtauMatrix <- function(x, y, colorPlot = TRUE,
              tl.col = "black")
   }
   for (i in 1:n){
-    text(i, n + 1.1 - i, x[i, i], col = diagColor)
-    text(i, n + 0.9 - i, "Levels", col = diagColor)
+    topLine <- paste("K =", x[i,i])
+    text(i, n + 1 - i, topLine, col = diagColor, cex = diagSize)
   }
 }
