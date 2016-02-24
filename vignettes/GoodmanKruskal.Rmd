@@ -11,16 +11,26 @@ vignette: >
   %\usepackage[utf8]{inputenc}
 ---
 
-The standard association measure between numerical variables is the product-moment correlation coefficient introduced by Karl Pearson at the end of the nineteenth century.  This measure characterizes the degree of linear association between numerical variables and is both normalized to lie between -1 and +1 and symmetric: the correlation between variables x and y is the same as that between y and x.  Categorical variables arise commonly in many applications and the best-known association measure between two categorical variables is probably the chi-square measure, also introduced by Karl Pearson.  Like the product-moment correlation coefficient, this association measure is symmetric, but it is not normalized.  This lack of normalization provides one motivation for *Cramer's V*, defined as the square root of a normalized chi-square value; this measure varies between 0 and 1 and is conveniently available in the **vcd** package.  An interesting alternative to Cramer's V is *Goodman and Kruskal's tau*, which is *asymmetric* because it is based on the fraction of variability in the categorical variable y that can be explained by the categorical variable x.  In particular, the fraction of variability in x that is explainable by variations in y may be very different from the variability in y that is explainable by variations in x, as examples presented here demonstrate.  While this asymmetry is initially disconcerting, it turns out to be extremely useful, particularlly in exploratry data analysis.  This fact motivated the **GoodmanKruskal** package, developed to make this relatively little-known association measure readily available to the *R* community.
+The standard association measure between numerical variables is the product-moment correlation coefficient introduced by Karl Pearson at the end of the nineteenth century.  This measure characterizes the degree of linear association between numerical variables and is both normalized to lie between -1 and +1 and symmetric: the correlation between variables x and y is the same as that between y and x.  Categorical variables arise commonly in many applications and the best-known association measure between two categorical variables is probably the chi-square measure, also introduced by Karl Pearson.  Like the product-moment correlation coefficient, this association measure is symmetric, but it is not normalized.  This lack of normalization provides one motivation for *Cramer's V*, defined as the square root of a normalized chi-square value; the resulting association  measure varies between 0 and 1 and is conveniently available in the **vcd** package.  An interesting alternative to Cramer's V is *Goodman and Kruskal's tau*, which is not nearly as well known and is *asymmetric*.  This asymmetry arises because the tau measure is based on the fraction of variability in the categorical variable y that can be explained by the categorical variable x.  In particular, the fraction of variability in x that is explainable by variations in y may be very different from the variability in y that is explainable by variations in x, as examples presented here demonstrate.  While this asymmetry is initially disconcerting, it turns out to be extremely useful, particularlly in exploratry data analysis.  This combination of utility and relative obscurity motivated the **GoodmanKruskal** package, developed to make this association measure readily available to the *R* community.
 
 ## 1. Introduction
 
+Both in developing predictive models and in understanding relations between different variables in a dataset, association measures play an important role.  In the case of numerical variables, the standard association measure is the product-moment correlation coefficient introduced by Karl Pearson at the end of the nineteenth century, which provides a normalized measure of *linear* association between two variables.  In building linear regression models, it is desirable to have high correlations - either positive or negative - between the prediction covariates and the response variable, but small correlations between the different prediction covariates.  In particular, large correlations between prediction covariates leads to the problem of *collinearity* in linear regression problems, which results can result in extreme sensitivity of the estimated model parameters to small changes in the data, incorrect signs of some model parameters, and large standard errors, causing the statistical significance of some parameters to be greatly underestimated.  In addition, the presence of highly correlated predictors can also cause difficulties for newer predictive model types: the tendency for the original random forest model class to preferentially include highly correlated variables at the expense of other predictors was one of the motivations for developing the conditional random forest method included in the **party** package (see the paper by Strobl et al., "Conditional Variable Importance for Random Forests," *BMC Bioinformatics*, 2008, 9:307, http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-307).  Alternative association measures to the product-moment correlation for numerical data include Spearman's rank correlation and Kendall's tau, both of which measure *monotone* association between variables (i.e., the tendency for "large" values of one variable to be associated with "large" values of the other).  All three of these correlation measures may be computed with the **cor** function in the base *R* **stats** package by specifying the **method** parameter appropriately.  The Kendall and Spearman measures are easily extended to ordinal variables (i.e., ordered factors), but none of these measures are applicable to categorical (i.e., unordered factor) variables.  Finally, note that all three of these association measures are symmetric: the correlation between $x$ and $y$ is equal to that between $y$ and $x$.
+
+Categorical variables arise frequently in practice, either because certain variables are inherently categorical (e.g., state, country, political affiliation, merchandise type, color, medical condition, etc.) or because numerical variables are frequently grouped in some application areas, converting them to categorical variables (e.g., replacing age with age group in demographic analysis).  There is loss of information in making this conversion, but the original numerical data values are often not available, leaving us with categorical data for analysis and modeling.  Also, numerical values are sometimes used to code categorical variables (e.g., numerical patient group identifiers), or integer-valued variables where there is relatively little loss of information in treating them as categorical (e.g., the variables **cyl**, **gear**, and **carb** in the **mtcars** dataset).  In any of these cases, quantitative association measures may be of interest, and the most popular measures available for categorical variables are the chi-square and Cramer's V measures defined in Section 1.1 and available via the **assocstats** function in the **vcd** package.  Like the correlation measures described above for numerical data, both of these association measures are symmetric: the association between $x$ and $y$ is the same as that between $y$ and $x$.
+
+Much less well known than the chi-square and Cramer's V measures is *Goodman and Kruskal's tau measure,* which is described in Section 1.2 and forms the basis for the **GoodmanKruskal** package.  In contrast to all of the association measures discussed in the preceeding two paragraphs, Goodman and Kruskal's tau measure is *asymmetric*: the association between variables $x$ and $y$ is generally *not* the same as that between $y$ and $x$.  This asymmetry is inherent in the way Goodman and Kruskal's tau is defined and, although it may be initially disconcerting, this characteristic of the association measure can actually be quite useful, as examples presented in Sections 2 and 3 illustrate.
+
+It is possible to apply any of the categorical association measures just described to numerical data, but the results are generally not useful.  There are exceptions - the cases noted above where numerical variables are either effectively encodings of categorical variables or nearly so - but in the case of "typical" numerical data with few or no repeated values, these categorical association measures generally give meaningless results, a point discussed in detail in Section 4.  In fact, these association measures generally give meaningless results if we apply them to one "typical" numerical variable and another categorical variable.  Because it is sometimes desirable to attempt to measure the association between mixed variable types, the function **GroupNumeric** has been included in the **GoodmanKruskal** package to convert numerical variables into categorical ones, which may then be used as a basis for association analysis between mixed variable types.  This function is described and illustrated in Section 5, but it should be noted that this approach is somewhat experimental: there is loss of information in grouping a numerical variable into a categorical variable, but neither the extent of this information loss nor its impact are clear.  Also, it is not obvious how many groups should be chosen, or how the results are influenced by different grouping strategies (the **GroupNumeric** function is based on the **classInt** package, which provides a number of different grouping methods).  Nevertheless, the preliminary results presented in Section 5 suggest that this strategy does have promise for mixed-variable association analysis, and a simple rule-of-thumb is offered for selecting the number of groups.
+
+The rest of this note is organized as follows.  Section 1.1 presents a detailed problem formulation and describes the chi-square and Cramer's V association measures.  Section 1.2 then describes Goodman and Kruskal's tau measure, and Section 2 gives a brief overview of the functionality included in the **GoodmanKruskal** package based on this association measure.  Section 3 presents three examples to illustrate the kinds of results we can obtain with Goodman and Kruskal's tau measure, demonstrating its ability to uncover unexpected relations between variables that may be very useful in exploratory data analysis.  Section 4 then considers the important special case where the variable $x$ has no repeated values - e.g., continuously-distributed random variables or categorical variables equivalent to "record indices" - showing how Goodman and Kruskal's tau measure breaks down completely in this case.  Section 5 then introduces the **GroupNumeric** function to address this problem and describes its use.  Finally, this note concludes with a brief summary in Section 6.
+
 ### 1.1 Problem formulation, chi-square, and Cramer's V
 
-The basic problem of interest here may be formulated as follows.  We are given two categorical variables, $x$ and $y$, having $K$ and $L$ distinct values, respectively, and we wish to quantify the extent to which these variables are associated or ``vary together.''  It is assumed that we have $N$ records available, each listing the levels $x$ and $y$ assume; for convenience, introduce the notation $x \rightarrow i$ to indicate that $x$ assumes it's $i^{th}$ possible value.  The basis for all categorical association measures is the contingency table $N_{ij}$ which counts the number of times $x \rightarrow i$ and $y \rightarrow j$:
+The basic problem of interest here may be formulated as follows.  We are given two categorical variables, $x$ and $y$, having $K$ and $L$ distinct values, respectively, and we wish to quantify the extent to which these variables are associated or ``vary together.''  It is assumed that we have $N$ records available, each listing values for $x$ and $y$; for convenience, introduce the notation $x \rightarrow i$ to indicate that $x$ assumes it's $i^{th}$ possible value.  The basis for all categorical association measures is the contingency table $N_{ij}$ which counts the number of times $x \rightarrow i$ and $y \rightarrow j$:
 $$
 \begin{equation}
-N_{ij} =  |\{ (i, j) | x \rightarrow i, y \rightarrow j\}|,
+N_{ij} =  |\{ k \; | \; x_k \rightarrow i, y_k \rightarrow j\}|,
 \end{equation}
 $$
 where $| {\cal S} |$ indicates the number of elements in the set $\cal S$.  The raw counts in this contingency table may be turned into simple probability estimates by dividing by the number of records $N$:
@@ -35,14 +45,14 @@ $$
 X^2 = N \sum_{i=1}^{K} \sum_{j=1}^{L} \; \frac{(\pi_{ij} - \pi_{i+} \pi_{+j})^2}{\pi_{i+} \pi_{+j}},
 \end{equation}
 $$
-where the marginals $\pi_{i+}$ and $\pi_{+j}$ are defined by:
+where the marginals $\pi_{i+}$ and $\pi_{+j}$ are defined as:
 $$
 \begin{eqnarray}
 \pi_{i+} & = & \sum_{j=1}^{L} \; \pi_{ij}, \\
 \pi_{+j} & = & \sum_{i=1}^{K} \; \pi_{ij}.
 \end{eqnarray}
 $$
-The idea behind this association measure is based on the observation that, if $x$ and $y$ are regarded as discrete-valued random variables, then $\pi_{ij}$ is an empirical estimate of their joint distribution, while $\pi_{i+}$ and $\pi_{+j}$ are estimates of the corresponding marginal distributions.  If $x$ and $y$ are statistically independent, the joint distribution is simply the product of the marginal distributions, and the $X^2$ measure characterizes the extent to which the estimated probabilities depart from this independence assumption.  Unfortunately, the $X^2$ measure is not normalized, varying between a minimum value of $0$ under the independence assumption to a maximum vaue of $N \min \{ K-1, L-1 \}$ (see Agresti, page 112).  This observation motivates Cramer's V measure, defined as:
+The idea behind this association measure is based on the observation that, if $x$ and $y$ are regarded as discrete-valued random variables, then $\pi_{ij}$ is an empirical estimate of their joint distribution, while $\pi_{i+}$ and $\pi_{+j}$ are estimates of the corresponding marginal distributions.  If $x$ and $y$ are statistically independent, the joint distribution is simply the product of the marginal distributions, and the $X^2$ measure characterizes the extent to which the estimated probabilities depart from this independence assumption.  Unfortunately, the $X^2$ measure is not normalized, varying between a minimum value of $0$ under the independence assumption to a maximum vaue of $N \min \{ K-1, L-1 \}$ (see Alan Agresti's book, *Categorical Data Analysis*, Wiley, 2002, second edition, page 112).  This observation motivates Cramer's V measure, defined as:
 $$
 \begin{equation}
 V = \sqrt{ \frac{X^2}{N \mbox{min} \{ (K-1, L-1) \} } }. 
@@ -58,7 +68,7 @@ $$
 \alpha(x, y) = \frac{V(y) - E [V(y|x)]}{V(y)}
 \end{equation}
 $$
-where $V(y)$ denotes a measure of the unconditional variability in $y$ and $V(y|x)$ is the same measure of variability, but conditional on $x$, and its expectation is taken with respect to $x$.  Different members of this family are obtained by selecting different definitions of these variability measures, as discussed in Alan Agresti's book, *Categorical Data Analysis* (Wiley, 2002, second edition, Section 2.4.2).  The specific choices on which Goodman and Kruskal's $\tau$ measure is based are:
+where $V(y)$ denotes a measure of the unconditional variability in $y$ and $V(y|x)$ is the same measure of variability, but conditional on $x$, and its expectation is taken with respect to $x$.  Different members of this family are obtained by selecting different definitions of these variability measures, as discussed in Section 2.4.2 of Agresti's book.  The specific choices that lead to Goodman and Kruskal's $\tau$ measure are:
 $$
 \begin{eqnarray}
 V(y) & = & 1 - \sum_{j=1}^{L} \; \pi_{+j}^2, \\
@@ -75,26 +85,45 @@ It follows from the fact that $i$ and $j$ are not interchangeable on the right-h
 
 ## 2. The GoodmanKruskal R package
 
-The **GoodmanKruskal** package has the following four functions to compute Goodman and Kruskal's $\tau$ measure and support some simple extensions.  These functions are:
-
-1.  __GKtau__ is the basic function to compute both the forward association $\tau(x, y)$ and the backward association $\tau(y, x)$ between two categorical vectors $x$ and $y$;
-1.  __GKtauDataframe__ computes the Goodman Kruskal association measures between all pairwise combinations of variables in a dataframe;
-1.  __GroupNumeric__ groups a numeric vector, returning a factor that can be used in association analysis, for reasons discussed in Section 4 and demonstrated in Section 5;
-1.  __plot.GKtauMatrix__ is a plot method for the S3 objects of class __GKtauMatrix__ returned by the __GKtauDataframe__ function.
-
-
-
-## 3. Three examples
-
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 require(GoodmanKruskal)
 require(MASS)
 require(car)
 ```
 
-The following examples illustrate the use of Goodman and Kruskal's $\tau$ measure of association between categorical variables in uncovering possibly surprising features in a dataset.  The two examples presented in Section 3.1 are both based on the **Cars93** dataframe in the **MASS** package, and they illustrate two key points, each based on a different subset of the `r ncol(Cars93)` columns from the dataframe.  The first example provides a useful illustration of the general behavior of Goodman and Kruskal's $\tau$ measure, including its asymmetry, while the second example illustrates one of the two important special cases discussed in detail in Section 4.1.  The third example is presented in Section 3.2 and it illustrates the utility of Goodman and Kruskal's $\tau$ measure in exploratory data analysis, uncovering a relationship that is not obvious, although easily understood once it is identified.
+The **GoodmanKruskal** package includes four functions to compute Goodman and Kruskal's $\tau$ measure and support some simple extensions.  These functions are:
 
-### 3.1 The Cars93 dataframe
+1.  __GKtau__ is the basic function to compute both the forward association $\tau(x, y)$ and the backward association $\tau(y, x)$ between two categorical vectors $x$ and $y$;
+1.  __GKtauDataframe__ computes the Goodman Kruskal association measures between all pairwise combinations of variables in a dataframe;
+1.  __GroupNumeric__ groups a numeric vector, returning a factor that can be used in association analysis, for reasons discussed in Sections 4 and 5;
+1.  __plot.GKtauMatrix__ is a plot method for the S3 objects of class __GKtauMatrix__ returned by the __GKtauDataframe__ function.
+
+As noted, **GKtau** is the basic function on which the **GoodmanKruskal** package is built.  This function is called with two variables, $x$ and $y$, and it returns a single-row dataframe with six columns, giving the name of each variable, the number of distinct values each exhibits, and both the forward association $\tau(x,y)$ and the backward association $\tau(y,x)$.  By default, missing values are treated as a separate level, if they are present (i.e., the presence of missing data increases the number of distinct values by one); alternatively, any valid value for the **useNA** parameter of the **table** function in base *R* may be specified for the optional **includeNA** parameter in the **GKtau** call.  The other optional parameter for the **GKtau** function is **dgts**, which specifies the number of digits to retain in the results; the default value is $3$.
+
+As a specific illustration of the **GKtau** function, consider its application to the categorical variables **Manufacturer** and **Cylinders** from the **Cars93** dataframe in the **MASS** package, a dataframe considered further in Section 3.1:
+
+```{r, echo = TRUE}
+GKtau(Cars93$Manufacturer, Cars93$Cylinders)
+```
+
+This example illustrates the asymmetry of the Goodman-Kruskal tau measure: knowledge of **Manufacturer** is somewhat predictive of **Cylinders**, but the reverse association is much weaker; knowing the number of cylinders tells us almost nothing about who manufactured the car.  An even more dramatic example from the same dataframe is the association between the **Manufacturer** variable and the variable **Origin**, with levels "USA" and "non-USA":
+
+```{r, echo = TRUE}
+GKtau(Cars93$Manufacturer, Cars93$Origin)
+```
+
+Here, knowledge of the manufacturer is enough to completely determine the car's origin - implying that each manufacturer has been characterized as either "foreign" or "domestic" - but knowledge of **Origin** provides essentially no ability to predict manufacturer, since each origin is represented by approximately $45$ different manufacturers.
+
+The function **GKtauDataframe** is a wrapper that applies **GKtau** to all pairs of variables in a dataframe.  This function returns an S3 object of class "GKtauMatrix" that consists of a square matrix with one row and one column for each variable included in the dataframe.  The diagonal elements of this matrix give the number of unique values for each variable, and the off-diagonal elements contain the forward and backward tau measures for each variable pair.  The **GoodmanKruskal** package includes a plot method for the S3 objects returned by the **GKtauDataframe** function, based on the **corrplot** package; detailed demonstrations of both the **GKtauDataframe** function and the associated plot method are given in Section 3.
+
+The **GroupNumeric** function converts numeric variables into categorical variables, to serve as a basis for association analysis between variables of different types.  Motivation for this function comes from the fact, discussed in Sections 4 and 5, that a continuously distributed random variable $x$ exhibits no "ties" or duplicated values, implying that the number of levels for $x$ is equal to $N$, the number of records.  As shown in Section 4, this means $\tau(x, y) = 1$ for any other variable $y$, rendering the Goodman-Kruskal measure useless in such situations. Grouping numerical variables reduces the number of distinct values, and this approach can - at least in some cases - provide a useful basis for characterizing the association between numerical and categorical variables.  The **GroupNumeric** function is based on the **classIntervals** function from the **classInt** *R* package, which provides a variety of different procedures for grouping numerical variables.  A more detailed discussion of the **GroupNumeric** function is given in Section 5, which illustrates its use.
+
+
+## 3. Three examples
+
+The following examples illustrate the use of Goodman and Kruskal's $\tau$ measure of association between categorical variables in uncovering possibly surprising features in a dataset.  The two examples presented in Section 3.1 are both based on the **Cars93** dataframe in the **MASS** package, and they illustrate two key points, each based on a different subset of the `r ncol(Cars93)` columns from the dataframe.  The first example provides a useful illustration of the general behavior of Goodman and Kruskal's $\tau$ measure, including its asymmetry, while the second example illustrates an important special case, discussed in detail in Section 4.1.  The third example is presented in Section 3.2 and it illustrates the utility of Goodman and Kruskal's $\tau$ measure in exploratory data analysis, uncovering a relationship that is not obvious, although easily understood once it is identified.
+
+### 3.1 The Cars93 dataframe: two examples
 
 The **Cars93** dataframe from the **MASS** package characterizes 93 different cars in terms of `r ncol(Cars93)` attributes.  The plot below gives a graphical summary of the results obtained using the **GKtauDataframe** procedure described in Section 2, applied to a subset of five of these attributes.  This plot is in the form of a $5 \times 5$ array, with the variable names across the top and down the left side.  The diagonal entries in this display give the numbers of unique levels for each variable, while the off-diagonal elements give both numeric and graphical representations of the Goodman-Kruskal $\tau$ values.  Specifically, the numerical values appearing in each row represent the association measure $\tau(x, y)$ from the variable $x$ indicated in the row name to the variable $y$ indicated in the column name.  Looking at the upper left $2 \times 2$ sub-array from this plot provides an extreme illustration of the asymmetry of the $\tau$ measure.  Specifically, the association from **Manufacturer** to **Origin** is $\tau(x, y) = 1$, as indicated by the degenerate ellipse (i.e., straight line) in the $(1, 2)$-element of this plot array.  In contrast, the opposite association - from **Origin** to **Manufacturer** has a $\tau$ value of only $0.05$, small enough to be regarded as zero.  This result means that **Origin** is perfectly predictable from **Manufacturer**, but **Origin** gives essentially no information about **Manufacturer**; in practical terms, this suggests we can uniquely associate an origin (i.e., "USA" or "non-USA") with every manufacturer, but that each of these origin designations includes multiple manufacturers.  Looking carefully at the $26 \times 2$ contingency table constructed from these variables confirms this result - there are 48 manufacturers in the "USA"" group and 45 different manufacturers in the "non-USA"" group - but it is *much* easier to see this from the plot shown below.
 
@@ -143,11 +172,12 @@ This table also suggests the reason for the much weaker reverse association betw
 
 The special case $K = N$ arises in two distinct but extremely important circumstances.  The first is the case of effective record labels like **Make** in the **Cars93** example discussed in Section 3.1, while the second is the case of continuously-distributed numerical variables discussed in Section 5.  The point of the following discussion is to show that in this case, $\tau(x, y) = 1$ for all variables $y$.
 
-To see this point, proceed as follows.  First, note that if $K = N$, the contingency table matrix $N_{ij}$ is given by:
+To see this point, proceed as follows.  First, note that if $K = N$, there is a one-to-one association between the record index $k$ and the levels of $x$, so the contingency table matrix $N_{ij}$ may be re-written as:
 $$
 \begin{equation}
-N_{ij} = \left\{ \begin{array}{ll}
-  1 & \mbox{if $y \rightarrow j$}, \\
+N_{ij} = | \{ i \; | \; y_i \rightarrow j \} | = 
+  \left\{ \begin{array}{ll}
+  1 & \mbox{if $y_i \rightarrow j$}, \\
   0 & \mbox{otherwise,}
     \end{array}
   \right.
@@ -157,7 +187,7 @@ which implies:
 $$
 \begin{equation}
 \pi_{ij} = \left\{ \begin{array}{ll}
-  1/N & \mbox{if $y \rightarrow j$}, \\
+  1/N & \mbox{if $y_i \rightarrow j$}, \\
   0 & \mbox{otherwise.}
     \end{array}
   \right.
@@ -169,7 +199,7 @@ $$
 \pi_{i+} = \sum_{j=1}^{L} \; \pi_{ij} = 1/N,
 \end{equation}
 $$
-since only nonzero term appears in this sum.  Thus, it follows that:
+since only the single nonzero term $1/N$ appears in this sum.  Thus, we have:
 $$
 \begin{eqnarray}
 E [V(y|x)] & = & 1 - \sum_{i=1}^{K} \sum_{j=1}^{L} \frac{\pi_{ij}^2}{\pi_{i+}} \\
