@@ -53,8 +53,3 @@ GKtauDataframe <- function(df, dgts = 3, includeNA = "ifany"){
   class(GKmatrix) <- 'GKtauMatrix'
   return(GKmatrix)
 }
-
-#
-#  Note: look into returning an S3 object of class GKmatrix and
-#        constructing a plot method based on the corrplot package
-#

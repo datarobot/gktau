@@ -44,8 +44,8 @@ GKtau <- function(x, y, dgts = 3, includeNA = "ifany"){
   #
   #  Compute the marginals
   #
-  PIiPlus <- apply(PIij, MARGIN = 1, sum)
-  PIPlusj <- apply(PIij, MARGIN = 2, sum)
+  PIiPlus <- rowSums(PIij)
+  PIPlusj <- colSums(PIij)
   #
   #  Compute marginal and conditional variations
   #
