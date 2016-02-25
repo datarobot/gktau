@@ -1,18 +1,17 @@
 Package: GoodmanKruskal
-Title: Association analysis for categorical variables
-Version: 0.0.0.9000
+Title: Association Analysis for Categorical Variables
+Version: 0.0.1
 Authors@R: person("Ron", "Pearson", email = "ron@datarobot.com", role = c("aut", "cre"))
-Description: This package supports association analysis between categorical
+Description: Association analysis between categorical
     variables using the Goodman and Kruskal tau measure. This asymmetric association
     measure allows the detection of asymmetric relations between categorical
-    variables (e.g., one variable obtained by re-grouping another). This package
-    also implements the better known (symmetric) Cramer V measure.
+    variables (e.g., one variable obtained by re-grouping another). 
 Depends: 
     R (>= 3.2.3)
 Imports: 
     classInt,
     corrplot
-License: GPL (>= 2)
+License: MIT + file LICENSE
 LazyData: true
 Suggests: 
     knitr,
