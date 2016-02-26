@@ -6,6 +6,6 @@
 \alias{GoodmanKruskal-package}
 \title{GoodmanKruskal: The Goodman and Kruskal tau measure}
 \description{
-This package supports association analysis between categorical variables using the Goodman and Kruskal tau measure
+Association analysis between categorical variables using the Goodman and Kruskal tau measure
 }
 
