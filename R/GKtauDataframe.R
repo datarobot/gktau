@@ -32,6 +32,7 @@
 #'
 GKtauDataframe <- function(df, dgts = 3, includeNA = "ifany"){
   #
+  df <- as.data.frame(df)
   n <- ncol(df)
   if (n == 1){
     stop("Dataframe df must have at least two columns")

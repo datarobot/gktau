@@ -9,7 +9,10 @@ y <- rep(c("a", "b", "c", "d"), times = 3)
 z <- rep(c("a", "b", "a", "c"), each = 3)
 
 outputNames <- c("xName", "yName", "Nx", "Ny", "tauxy", "tauyx")
-correctOutput <- readRDS("GKtauExampleOutput.rds")
+correctOutput <- data.frame(xName = "x", yName = "z",
+                            Nx = 4, Ny = 3,
+                            tauxy = 1, tauyx = 0.667,
+                            stringsAsFactors = FALSE)
 
 test_that("Required parameters are present", {
   expect_error(GKtau())

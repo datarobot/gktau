@@ -39,7 +39,7 @@ GKtau <- function(x, y, dgts = 3, includeNA = "ifany"){
   #
   #  Compute the joint empirical distribution PIij
   #
-  Nij <- table(x, y, useNA = includeNA)
+  Nij <- table(as.character(x), as.character(y), useNA = includeNA)
   PIij <- Nij/sum(Nij)
   #
   #  Compute the marginals
@@ -66,6 +66,7 @@ GKtau <- function(x, y, dgts = 3, includeNA = "ifany"){
   sumFrame <- data.frame(xName = xName, yName = yName,
                          Nx = nrow(Nij), Ny = ncol(Nij),
                          tauxy = round(tauxy, digits = dgts),
-                         tauyx = round(tauyx, digits = dgts))
+                         tauyx = round(tauyx, digits = dgts),
+                         stringsAsFactors = FALSE)
   return(sumFrame)
 }

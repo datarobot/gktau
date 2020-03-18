@@ -10,7 +10,10 @@ z <- rep(c("a", "b", "a", "c"), each = 3)
 df <- data.frame(x = x, y = y, z = z)
 badDataframe <- data.frame(x = x)
 
-correctOutput <- readRDS("GKtauDataframeTestOutput.rds")
+correctOutput <- matrix(c(4.000, 0.111, 1.000, 0.111, 4.000, 0.111, 0.667, 0.074, 3.000), byrow = TRUE, nrow = 3)
+colnames(correctOutput) <- c("x", "y", "z")
+rownames(correctOutput) <- c("x", "y", "z")
+class(correctOutput) <- 'GKtauMatrix'
 
 test_that("Required parameters are present", {
   expect_error(GKtauDataframe())
